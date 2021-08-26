@@ -1,6 +1,5 @@
 // To be tested
 let resthub = require('../index');
-let contact = require('../contactModel');
 
 // Dependencies
 let chai = require('chai');
@@ -25,37 +24,67 @@ let updatedModel = {
 	phone: "92345678"
 };
 
+var requester = chai.request(resthub).keepOpen();
+
 // Tests
 describe('API endpoint testing', function() {
-	// Clear the database first before testing
-	before(function() {
-		contact.deleteMany({}, (err) => {});
-	});
-	
 	// We'll use these to store created and updated contacts to check against later.
 	let createdContact = null;
 	let updatedContact = null;
 	
-	describe('List all contacts', function() {
-		it('All contacts should be listed (empty)', function(callWhenDone) {
-			chai.request(resthub)
-				.get('/api/contacts')
+	// Wait for the server to be ready before starting testing
+	before(function(done) {
+		resthub.on('ready', function() {
+			done();
+		});
+	});
+	
+	describe('Test basic connectivity', function() { 
+		it('Should connect to API endpoint', function(done) {
+			requester.get('/api')
 				.end((err, res) => {
+					if (err) {
+						done(err);
+					}
 					res.should.have.status(200);
-					res.should.be.an('object');
-					res.body.status.should.be.eql('success');
-					res.body.message.should.be.eql('Contacts retrieved successfully');
-					res.body.should.have.property('data');
-					res.body.data.length.should.be.eql(0);
-					callWhenDone();
+					done();
 				});
 		});
 	});
 	
+	describe('Clear database', function() {
+		it('Should clear database', function(done) {
+			requester.delete('/api/contacts')
+			.end((err, res) => {
+				if (err) {
+					done(err);
+				}
+				res.should.have.status(200);
+				done();
+			});
+		});
+	});
+	
+	describe('Check that contact list is empty', function() {
+		it('Contact list should be empty', function(done) {
+			requester.get('/api/contacts')
+					.end((err, res) => {
+						if (err) {
+							done(err);
+						}
+						res.should.have.status(200);
+						res.should.be.an('object');
+						res.body.message.should.be.eql('Contacts retrieved successfully');
+						res.body.should.have.property('data');
+						res.body.data.length.should.be.eql(0);
+						done();
+					});
+		});
+	});
+	
 	describe('Create a new contact', function() {
-		it('A new contact should be created', function(callWhenDone) {
-			chai.request(resthub)
-				.post('/api/contacts')
+		it('A new contact should be created', function(done) {
+			requester.post('/api/contacts')
 				.send(model)
 				.end((err, res) => {
 					res.should.have.status(200);
@@ -67,19 +96,17 @@ describe('API endpoint testing', function() {
 					res.body.data.gender.should.be.eql(model.gender);
 					res.body.data.phone.should.be.eql(model.phone);
 					createdContact = res.body.data;
-					callWhenDone();
+					done();
 				});
 		});
 	});
 	
 	describe('Check that the new contact is reflected in the database', function() {
-		it('The same new contact should be reflected in the database', function(callWhenDone) {
-			chai.request(resthub)
-				.get('/api/contacts')
+		it('The same new contact should be reflected in the database', function(done) {
+			requester.get('/api/contacts')
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.should.be.an('object');
-					res.body.status.should.be.eql('success');
 					res.body.message.should.be.eql('Contacts retrieved successfully');
 					res.body.should.have.property('data');
 					res.body.data.length.should.be.eql(1);
@@ -88,15 +115,14 @@ describe('API endpoint testing', function() {
 					res.body.data[0].email.should.be.eql(model.email);
 					res.body.data[0].gender.should.be.eql(model.gender);
 					res.body.data[0].phone.should.be.eql(model.phone);
-					callWhenDone();
+					done();
 				});
 		});
 	});
 	
 	describe('Update the contact', function() {
-		it('The contact should be updated', function(callWhenDone) {
-			chai.request(resthub)
-				.put('/api/contacts' + '/' + createdContact._id)
+		it('The contact should be updated', function(done) {
+			requester.put('/api/contacts' + '/' + createdContact._id)
 				.send(updatedModel)
 				.end((err, res) => {
 					res.should.have.status(200);
@@ -108,19 +134,17 @@ describe('API endpoint testing', function() {
 					res.body.data.gender.should.be.eql(updatedModel.gender);
 					res.body.data.phone.should.be.eql(updatedModel.phone);
 					updatedContact = res.body.data;
-					callWhenDone();
+					done();
 				});
 		});
 	});
 	
 	describe('Check that the updated contact is reflected in the database', function() {
-		it('The updated contact should be reflected in the database', function(callWhenDone) {
-			chai.request(resthub)
-					.get('/api/contacts')
+		it('The updated contact should be reflected in the database', function(done) {
+			requester.get('/api/contacts')
 					.end((err, res) => {
 						res.should.have.status(200);
 						res.should.be.an('object');
-						res.body.status.should.be.eql('success');
 						res.body.message.should.be.eql('Contacts retrieved successfully');
 						res.body.should.have.property('data');
 						res.body.data.length.should.be.eql(1);
@@ -129,36 +153,33 @@ describe('API endpoint testing', function() {
 						res.body.data[0].email.should.be.eql(updatedModel.email);
 						res.body.data[0].gender.should.be.eql(updatedModel.gender);
 						res.body.data[0].phone.should.be.eql(updatedModel.phone);
-						callWhenDone();
+						done();
 					});
 		});
 	});
 	
 	describe('Delete contact', function() {
-		it('The contact should be deleted', function(callWhenDone) {
-			chai.request(resthub)
-				.delete('/api/contacts' + '/' + updatedContact._id)
+		it('The contact should be deleted', function(done) {
+			requester.delete('/api/contacts' + '/' + updatedContact._id)
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.should.be.an('object');
 					res.body.message.should.be.eql('Contact deleted');
-					callWhenDone();
+					done();
 				});
 		});
 	});
 	
 	describe('Check that the contact is deleted', function() {
-		it('Contact deletion should be reflected in the database', function(callWhenDone) {
-			chai.request(resthub)
-					.get('/api/contacts')
+		it('Contact deletion should be reflected in the database', function(done) {
+			requester.get('/api/contacts')
 					.end((err, res) => {
 						res.should.have.status(200);
 						res.should.be.an('object');
-						res.body.status.should.be.eql('success');
 						res.body.message.should.be.eql('Contacts retrieved successfully');
 						res.body.should.have.property('data');
 						res.body.data.length.should.be.eql(0);
-						callWhenDone();
+						done();
 					});
 		});
 	});

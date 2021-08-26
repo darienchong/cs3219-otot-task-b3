@@ -13,7 +13,8 @@ var contactController = require('./contactController');
 // Contact routes
 router.route('/contacts')
     .get(contactController.index)
-    .post(contactController.new);
+    .post(contactController.new)
+	.delete(contactController.deleteAll);
 router.route('/contacts/:contact_id')
     .get(contactController.view)
     .patch(contactController.update)
