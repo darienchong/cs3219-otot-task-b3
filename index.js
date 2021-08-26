@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 // Connect to Mongoose and set connection variable
-let mongoDbLink = 'mongodb://localhost/resthub';
+let mongoDbLink = 'mongodb+srv://cs3219-otot:cs3219-otot@cs3219-otot-task-b.lyitf.mongodb.net/cs3219-otot-task-b?retryWrites=true&w=majority';
 mongoose.connect(mongoDbLink, { useNewUrlParser: true});
 
 var db = mongoose.connection;
