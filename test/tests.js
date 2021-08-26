@@ -33,6 +33,7 @@ describe('API endpoint testing', function() {
 	let updatedContact = null;
 	
 	// Wait for the server to be ready before starting testing
+	// See: https://mrvautin.com/ensure-express-app-started-before-tests/
 	before(function(done) {
 		resthub.on('ready', function() {
 			done();
