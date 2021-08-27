@@ -6,6 +6,7 @@ let bodyParser = require('body-parser');
 let mongoose = require('mongoose');
 let app = express();
 let apiRoutes = require("./api-routes");
+let cors = require('cors');
 let mongoDbLink = 'mongodb+srv://cs3219-otot:cs3219-otot@cs3219-otot-task-b.lyitf.mongodb.net/cs3219-otot-task-b?retryWrites=true&w=majority';
 
 function setupDatabaseConnection(databaseString) {
@@ -22,6 +23,9 @@ function setupDatabaseConnection(databaseString) {
 }
 
 function setupServer() {
+	// Use CORS middleware
+	app.use(cors());
+	
 	// Configure bodyparser to handle post requests
 	app.use(bodyParser.urlencoded({
 		extended: true
